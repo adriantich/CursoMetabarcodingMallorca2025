@@ -1,0 +1,37 @@
+# Results directory - pipeline output
+results/
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+*~
+
+# Log files
+*.log
+
+# Compressed files
+*.gz
+*.zip
+*.tar
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# R files
+.Rhistory
+.RData
+.Rproj.user/
+
+# Conda environments
+.conda/
+env/
+venv/
