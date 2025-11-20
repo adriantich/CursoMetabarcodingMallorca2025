@@ -22,7 +22,14 @@ void seq2tab(const std::string& input_table_file, const std::string& fasta_file,
             if (!current_id.empty()) {
                 sequences[current_id] = current_sequence;
             }
-            current_id = line.substr(1); // Remove '>'
+            // Remove '>' and extract ID before ';' if it exists
+            std::string full_header = line.substr(1);
+            size_t semicolon_pos = full_header.find(';');
+            if (semicolon_pos != std::string::npos) {
+                current_id = full_header.substr(0, semicolon_pos);
+            } else {
+                current_id = full_header;
+            }
             current_sequence.clear();
         } else {
             current_sequence += line;
@@ -34,6 +41,11 @@ void seq2tab(const std::string& input_table_file, const std::string& fasta_file,
     infile.close();
 
     std::cout << "Loaded " << sequences.size() << " sequences from FASTA file." << std::endl;
+    
+    // Checkpoint: Print first sequence ID
+    if (!sequences.empty()) {
+        std::cout << "First sequence ID: " << sequences.begin()->first << std::endl;
+    }
 
     // Read the input table and write the output table with the new sequence column
     std::ifstream table_infile(input_table_file);
@@ -52,14 +64,45 @@ void seq2tab(const std::string& input_table_file, const std::string& fasta_file,
 
     std::string header;
     std::getline(table_infile, header);
+    
+    // Checkpoint: Check if id_column exists in header
+    std::istringstream header_stream(header);
+    std::string column_name;
+    int id_column_index = -1;
+    int col_index = 0;
+    while (std::getline(header_stream, column_name, '\t')) {
+        if (column_name == id_column) {
+            id_column_index = col_index;
+            std::cout << "Found id_column '" << id_column << "' at position " << col_index << std::endl;
+            break;
+        }
+        col_index++;
+    }
+    
+    if (id_column_index == -1) {
+        std::cerr << "Warning: Column '" << id_column << "' not found in header. Using first column instead." << std::endl;
+        id_column_index = 0;
+    }
+    
     table_outfile << header << "\tsequence\n"; // Use tab as the delimiter
 
     int matched = 0, total = 0;
     std::string row;
+    bool first_row = true;
     while (std::getline(table_infile, row)) {
         std::istringstream row_stream(row);
         std::string cell, id;
-        std::getline(row_stream, id, '\t'); // Assuming the ID column is the first column and tab-separated
+        
+        // Extract the ID from the specified column
+        for (int i = 0; i <= id_column_index; i++) {
+            std::getline(row_stream, id, '\t');
+        }
+        
+        // Checkpoint: Print first value from id_column
+        if (first_row) {
+            std::cout << "First value in id_column: " << id << std::endl;
+            first_row = false;
+        }
 
         std::string sequence = "NA";
         if (sequences.find(id) != sequences.end()) {
