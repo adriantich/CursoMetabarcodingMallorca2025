@@ -2,47 +2,18 @@
 
 ## Course Description
 
-Welcome to the Metabarcoding Course repository! This course provides hands-on training in metabarcoding bioinformatics, focusing on the analysis of 16S rRNA gene amplicon sequencing data for microbial community characterization.
+Welcome to the Metabarcoding Course repository! This course provides hands-on training in metabarcoding bioinformatics, focusing on the analysis of COI mitochondrial gene amplicon sequencing data for metazoan community characterization.
 
 Metabarcoding is a powerful molecular technique that combines DNA barcoding with high-throughput sequencing to identify and quantify organisms in complex environmental samples. This course covers the complete bioinformatics workflow from raw sequencing reads to taxonomic identification and diversity analysis.
-
-### Learning Objectives
-
-By the end of this course, participants will be able to:
-
-- Understand the principles and applications of metabarcoding
-- Perform quality control and preprocessing of Illumina sequencing data
-- Execute a complete metabarcoding analysis pipeline
-- Interpret OTU clustering results and taxonomic assignments
-- Troubleshoot common issues in metabarcoding workflows
-- Apply best practices for reproducible bioinformatics analyses
-
-### Target Audience
-
-This course is designed for:
-- Researchers working with microbial ecology
-- Graduate students in bioinformatics or molecular biology
-- Laboratory technicians processing amplicon sequencing data
-- Anyone interested in learning metabarcoding analysis techniques
-
-### Course Structure
-
-- **Duration:** Hands-on workshop format
-- **Level:** Intermediate (basic command-line knowledge required)
-- **Platform:** Linux/Unix-based systems
 
 ## Repository Structure
 
 ```
 CursoMetabarcodingMallorca2025/
-├── data/                          # Sample datasets
-│   ├── raw_sequences/            # Raw FASTQ files (paired-end)
-│   └── README.md
+├── data/                          # Raw FASTQ files (paired-end)
 ├── scripts/                       # Analysis scripts
-│   └── run_pipeline.sh           # Main pipeline execution script
-├── tools/                         # Additional tools and databases
-│   └── README.md
-├── PIPELINE.md                    # Detailed pipeline description
+│   └── pipeline_explained.sh      # Main pipeline execution script
+├── tools/                         # Additional tools
 ├── README.md                      # This file
 └── LICENSE                        # GPL-3.0 License
 ```
@@ -53,16 +24,28 @@ CursoMetabarcodingMallorca2025/
 
 The metabarcoding pipeline requires the following software:
 
-1. **FastQC** (≥ 0.11.9) - Quality control for sequencing data
-2. **Cutadapt** (≥ 3.4) - Adapter trimming and quality filtering
-3. **VSEARCH** (≥ 2.18.0) - Sequence analysis and clustering
+1. **FastQC** (≥ 0.11.8) - Quality control of raw sequencing data
+2. **Cutadapt** (≥ 5.2) - Adapter trimming and quality filtering
+3. **VSEARCH** (≥ 2.30.1) - Sequence analysis, merging, and clustering
+4. **dnoise** (≥ 1.4.2) - Denoising of amplicon sequences
+5. **SWARM** (≥ 3.1.6) - Clustering algorithm for OTU generation
+6. **BLAST+** (≥ 2.17.0) - Taxonomic assignment
+7. **R** (≥ 4.4.3) - Statistical analysis and MJOLNIR3 package
+8. **mumu** - Post-clustering curation tool
+9. **mkLTG** - Local taxonomy generator
 
-### Optional Tools (for advanced analysis)
+### Required R Packages
 
-- **BLAST+** - For taxonomic assignment
-- **QIIME 2** - Comprehensive microbiome analysis platform
-- **R** with phyloseq, vegan, ggplot2 - Statistical analysis and visualization
-- **Python 3** with BioPython - Custom scripting
+- **MJOLNIR3** - Main metabarcoding pipeline framework
+- **Biostrings** (≥ 2.74.0) - DNA sequence manipulation
+- **Rcpp** (≥ 1.1.0) - R/C++ interface
+- **dplyr** (≥ 1.1.4) - Data manipulation
+- **tidyr** (≥ 1.3.1) - Data tidying
+- **stringr** (≥ 1.6.0) - String operations
+
+### Taxonomy Reference Database
+
+A taxonomy reference database is required for taxonomic assignment. Download from the provided Google Drive link.
 
 ## Installation Instructions
 
@@ -78,85 +61,63 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 ```
 
-**Or install Mambaforge (faster alternative):**
-```bash
-wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
-bash Mambaforge-Linux-x86_64.sh
-```
-
 #### Step 2: Create a Conda Environment
 
 ```bash
 # Create environment with all required tools
-conda create -n metabarcoding -c bioconda -c conda-forge \
-    fastqc=0.11.9 \
-    cutadapt=3.5 \
-    vsearch=2.22.1
+conda create -n metabar -c bioconda -c conda-forge \
+    fastqc=0.11.8 \
+    cutadapt=5.2 \
+    vsearch=2.30.1 \
+    dnoise=1.4.2 \
+    swarm=3.1.6 \
+    r-base=4.4.3 \
+    bioconductor-biostrings=2.74.0 \
+    r-rcpp=1.1.0 \
+    r-dplyr=1.1.4 \
+    r-tidyr=1.3.1 \
+    r-stringr=1.6.0
 
 # Activate the environment
 conda activate metabarcoding
 
-# Verify installations
-fastqc --version
-cutadapt --version
-vsearch --version
+mkdir -p SOFT
+cd SOFT
+
+wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.17.0/ncbi-blast-2.17.0+-x64-linux.tar.gz
+tar zxvpf ncbi-blast-2.17.0+-x64-linux.tar.gz
+
+cp -r ncbi-blast-2.17.0+/bin/* $CONDA_PREFIX/bin/.
+
+git clone https://github.com/meglecz/mkLTG.git
+
+git clone https://github.com/frederic-mahe/mumu.git
+cd mumu
+make ; make check ; make install prefix=$CONDA_PREFIX
+cd ..
+
+git clone https://github.com/adriantich/MJOLNIR3.git
+cd MJOLNIR3
+git checkout obitools2vsearch
+cd ..
+R CMD INSTALL MJOLNIR3
+
+cd ../tools
+make ; make install PREFIX=$CONDA_PREFIX
+cd ..
+
 ```
 
-#### Step 3: (Optional) Install Additional Tools
+### Download taxonomy reference database
+
+#### Manually
+https://drive.google.com/drive/folders/1-LBlUKFA-r5g6GI0sTo-7t92ml3pAS0S?usp=sharing
 
 ```bash
-# For taxonomic assignment and advanced analysis
-conda install -c bioconda -c conda-forge \
-    blast \
-    qiime2 \
-    r-base \
-    r-phyloseq \
-    r-vegan \
-    r-ggplot2
+conda activate metabarcoding
+conda install conda-forge::gdown
+gdown --folder https://drive.google.com/drive/folders/1-LBlUKFA-r5g6GI0sTo-7t92ml3pAS0S
 ```
-
-### Option 2: Using APT (Ubuntu/Debian)
-
-```bash
-# Update package list
-sudo apt update
-
-# Install FastQC
-sudo apt install -y fastqc
-
-# Install Cutadapt (requires Python)
-sudo apt install -y python3-pip
-pip3 install cutadapt
-
-# Install VSEARCH
-sudo apt install -y vsearch
-```
-
-### Option 3: Manual Installation
-
-#### FastQC
-```bash
-cd ~/software
-wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.9.zip
-unzip fastqc_v0.11.9.zip
-chmod +x FastQC/fastqc
-export PATH=$PATH:~/software/FastQC
-```
-
-#### Cutadapt
-```bash
-pip3 install --user cutadapt
-export PATH=$PATH:~/.local/bin
-```
-
-#### VSEARCH
-```bash
-cd ~/software
-wget https://github.com/torognes/vsearch/releases/download/v2.22.1/vsearch-2.22.1-linux-x86_64.tar.gz
-tar xzf vsearch-2.22.1-linux-x86_64.tar.gz
-export PATH=$PATH:~/software/vsearch-2.22.1-linux-x86_64/bin
-```
-
 ### Verification
 
 Test that all tools are properly installed:
@@ -173,60 +134,59 @@ cutadapt --version
 # Check VSEARCH
 vsearch --version
 # Expected output: vsearch v2.22.1 (or higher)
+
+# Check BLAST+
+blastn -version
+# Expected output: blastn: 2.17.0+ (or higher)
+
+# Check dnoise
+dnoise --version
+# Expected output: dnoise 1.4.2 (or higher)
+
+# Check swarm
+swarm --version
+# Expected output: Swarm 3.1.6 (or higher)
+
+# Check R
+R --version
+# Expected output: R version 4.4.3 (or higher)
+
+# Check mumu
+mumu --version
+# Expected output: mumu version information
+
+# Check MJOLNIR3 in R
+R -e "library(mjolnir)"
+# Expected output: No errors, package loaded successfully
+
+
 ```
 
 ## Quick Start Guide
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/adriantich/CursoMetabarcodingMallorca2025.git
-cd CursoMetabarcodingMallorca2025
-```
-
-### 2. Activate Your Environment (if using Conda)
+### 1. Activate Your Environment (if using Conda)
 
 ```bash
 conda activate metabarcoding
 ```
 
-### 3. Run the Pipeline
+### 3. Run the Pipeline for a single sample as example
 
 ```bash
 cd scripts
-./run_pipeline.sh
+./pipeline_explained.sh
 ```
 
 The pipeline will:
 - Perform quality control on raw sequences
-- Filter and trim reads based on quality
+- Demultiplex the samples
 - Merge paired-end reads
-- Dereplicate and cluster sequences into OTUs
-- Generate results in the `results/` directory
+- Filter and trim reads based on quality
+- Dereplicate and remove chimeras
+- Denoise to obtain ESV and cluster them into OTUs
+- Taxonomic assignment
+- Post-clustering filter
 
-### 4. Examine Results
-
-```bash
-# View quality control reports
-firefox ../results/quality_control/*.html
-
-# Check OTU sequences
-head ../results/otu_table/otus.fasta
-
-# Review pipeline logs
-cat ../results/*.log
-```
-
-## Detailed Documentation
-
-For comprehensive information about each step of the pipeline, including:
-- Detailed methodology
-- Parameter explanations
-- Quality metrics
-- Troubleshooting tips
-- Advanced analysis options
-
-Please refer to **[PIPELINE.md](PIPELINE.md)**.
 
 ## Dataset Information
 
@@ -238,49 +198,24 @@ The `data/` directory contains small demonstration datasets:
 
 For working with your own data, replace the files in `data/raw_sequences/` with your samples following the same naming convention: `samplename_R1.fastq` and `samplename_R2.fastq`.
 
-## Troubleshooting
-
-### Common Issues
+## Common Issues
 
 **Issue 1: "Command not found" errors**
 - Solution: Ensure your conda environment is activated or tools are in your PATH
 - Verify installation with `which toolname`
 
-**Issue 2: Pipeline fails during quality filtering**
-- Solution: Check that input files are valid FASTQ format
+**Issue 2: Pipeline fails while running the software**
+- Solution: Check that input files are in valid format
 - Verify sufficient disk space is available
-- Review cutadapt log files for specific errors
+- Review software log files for specific errors
 
-**Issue 3: Low number of merged reads**
-- Solution: Check read quality at 3' ends in FastQC reports
-- Adjust merging parameters in the pipeline script
-- Verify correct amplicon length and sequencing strategy
+**Issue 3: Results do not match the expected results**
+- Solution: Check the number of reads at each step to detect were the problem is
+- Review the metadata information
+- Verify correct parameters adapted to your amplicon
 
-**Issue 4: Memory errors during clustering**
-- Solution: Reduce dataset size or increase available RAM
-- Use more stringent quality filtering to reduce data volume
+For additional help, please contact course instructors.
 
-For additional help, please refer to PIPELINE.md or contact course instructors.
-
-## Course Materials
-
-- **Slides and presentations:** Available during the course
-- **Hands-on exercises:** Follow along with the pipeline
-- **Reference materials:** See PIPELINE.md for citations
-
-## Support and Contact
-
-For questions about the course:
-- Open an issue in this repository
-- Contact course instructors during sessions
-- Email: [course contact information will be provided]
-
-## Contributing
-
-Contributions to improve the course materials are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request with clear descriptions
 
 ## Citation
 
@@ -295,14 +230,7 @@ https://github.com/adriantich/CursoMetabarcodingMallorca2025
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-- Course instructors and teaching assistants
-- Open-source bioinformatics community
-- Tool developers: FastQC, Cutadapt, VSEARCH teams
-- All course participants
-
 ---
 
-**Last updated:** January 2025  
-**Course website:** [To be announced]
+**Last updated:** November 2025  
+**Course website:** [25-27 of November 2025]
