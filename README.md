@@ -57,8 +57,8 @@ Conda provides an easy way to install all required tools in an isolated environm
 
 **Download and install Miniconda:**
 ```bash
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
+wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3-Linux-x86_64.sh
 ```
 
 #### Step 2: Create a Conda Environment
