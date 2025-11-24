@@ -76,7 +76,8 @@ conda create -n metabarcoding -c bioconda -c conda-forge python=3.11.14 \
     r-rcpp=1.1.0 \
     r-dplyr=1.1.4 \
     r-tidyr=1.3.1 \
-    r-stringr=1.6.0
+    r-stringr=1.6.0 \
+    cxx-compiler=1.0.0
 
 # Activate the environment
 conda activate metabarcoding
@@ -95,6 +96,9 @@ git clone https://github.com/frederic-mahe/mumu.git
 cd mumu
 make ; make check ; make install prefix=$CONDA_PREFIX
 cd ..
+# warning: if g++ not detected a broken symlink problem could be the cause
+# remake the link by 
+# cd $CONDA_PREFIX/bin && rm g++ && ln -s x86_64-conda-linux-gnu-g++ g++
 
 git clone https://github.com/adriantich/MJOLNIR3.git
 cd MJOLNIR3
