@@ -64,8 +64,14 @@ bash Miniforge3-Linux-x86_64.sh
 #### Step 2: Create a Conda Environment
 
 ```bash
+
+# clone the repository
+git clone https://github.com/adriantich/CursoMetabarcodingMallorca2025.git
+cd CursoMetabarcodingMallorca2025
+
 # Create environment with all required tools
-conda create -n metabarcoding -c bioconda -c conda-forge python=3.11.14 \
+# conda can also be used but mamba is prefered
+mamba create -n metabarcoding -c bioconda -c conda-forge python=3.11.14 \
     fastqc=0.11.8 \
     cutadapt=5.2 \
     vsearch=2.30.1 \
@@ -80,7 +86,7 @@ conda create -n metabarcoding -c bioconda -c conda-forge python=3.11.14 \
     cxx-compiler=1.0.0
 
 # Activate the environment
-conda activate metabarcoding
+mamba activate metabarcoding
 
 mkdir -p SOFT
 cd SOFT
@@ -118,8 +124,8 @@ cd ..
 https://drive.google.com/drive/folders/1-LBlUKFA-r5g6GI0sTo-7t92ml3pAS0S?usp=sharing
 
 ```bash
-conda activate metabarcoding
-conda install conda-forge::gdown
+mamba activate metabarcoding
+mamba install conda-forge::gdown
 gdown --folder https://drive.google.com/drive/folders/1-LBlUKFA-r5g6GI0sTo-7t92ml3pAS0S
 ```
 ### Verification
@@ -171,7 +177,7 @@ R -e "library(mjolnir)"
 ### 1. Activate Your Environment (if using Conda)
 
 ```bash
-conda activate metabarcoding
+mamba activate metabarcoding
 ```
 
 ### 3. Run the Pipeline for a single sample as example
